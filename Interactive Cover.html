@@ -1,0 +1,381 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Interactive Cover</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>
+/* Layout: one 1584x396 banner scaled to the viewport, hint line underneath. Palette is lifted from the portrait: shirt blue, tie navy, grass green, wall sand. */
+:root {
+  --bg: #ECEEF5;
+  --fg: #1A1D2B;
+  --muted: #565B70;
+  --frame: rgba(19, 22, 38, 0.14);
+
+  --ink: #131626;
+  --dot: #262B45;
+  --chalk: #F4F1EA;
+  --mist: #A7ABB4;
+  --shirt: #6780DC;
+  --shirt-lt: #A9BAF5;
+  --leaf: #8FBE3A;
+  --sand: #C9B79C;
+  --visor: #0B0D1A;
+
+  --display: 'Bricolage Grotesque', 'Arial Black', system-ui, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0B0D14;
+    --fg: #E8EAF2;
+    --muted: #9AA0B4;
+    --frame: rgba(255, 255, 255, 0.09);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0B0D14;
+  --fg: #E8EAF2;
+  --muted: #9AA0B4;
+  --frame: rgba(255, 255, 255, 0.09);
+  color-scheme: dark;
+}
+
+body { background: var(--bg); color: var(--fg); font-family: system-ui, sans-serif; }
+
+.wrap {
+  max-width: 1584px;
+  margin-inline: auto;
+  padding-block: 32px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1584 / 396;
+  overflow: hidden;
+  border-radius: 12px;
+  box-shadow: 0 0 0 1px var(--frame);
+  background: var(--ink);
+}
+
+.banner {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1584px;
+  height: 396px;
+  transform-origin: 0 0;
+  overflow: hidden;
+  background-color: var(--ink);
+  background-image: radial-gradient(var(--dot) 1.5px, transparent 1.5px);
+  background-size: 28px 28px;
+  color: var(--chalk);
+  font-family: var(--display);
+  --accent: var(--leaf);
+  --c1: var(--shirt);
+  --c2: var(--sand);
+  --mx: 0;
+  --my: 0;
+}
+
+/* shapes: follow the pointer, turn over on hover */
+.shapes { position: absolute; left: 56px; top: 36px; width: 240px; height: 196px; z-index: 2; cursor: pointer; --cs: 1; --rot: 0deg; }
+.shapes:hover { --cs: 1.12; --rot: 90deg; }
+.circle {
+  position: absolute; left: 16px; top: 16px; width: 128px; height: 128px; border-radius: 50%;
+  background: var(--c1);
+  transform: translate(calc(var(--mx) * -16px), calc(var(--my) * -10px)) scale(var(--cs));
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), background-color 0.4s;
+}
+.square {
+  position: absolute; left: 94px; top: 56px; width: 120px; height: 120px; box-sizing: border-box; border-radius: 20px;
+  border: 5px solid var(--c2);
+  transform: translate(calc(var(--mx) * 20px), calc(var(--my) * 12px)) rotate(var(--rot));
+  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.4s;
+}
+
+/* copy */
+.copy { position: absolute; left: 420px; top: 0; bottom: 0; width: 956px; display: flex; flex-direction: column; justify-content: center; gap: 18px; z-index: 2; pointer-events: none; }
+.eyebrow { margin: 0; font-family: var(--mono); font-size: 15px; font-weight: 500; letter-spacing: 0.16em; color: var(--mist); }
+.headline { margin: 0; display: flex; flex-direction: column; gap: 18px; align-self: flex-start; font-size: 68px; font-weight: 800; line-height: 1; letter-spacing: -0.02em; pointer-events: auto; cursor: pointer; }
+.l2 { display: flex; align-items: center; color: var(--accent); transition: color 0.4s; }
+.caret { display: inline-block; width: 10px; height: 0.72em; margin-left: 8px; background: var(--accent); animation: blink 1s steps(1) infinite; transition: background-color 0.4s; }
+@keyframes blink { 50% { opacity: 0; } }
+.pill { align-self: flex-start; margin: 0; box-sizing: border-box; padding: 8px 16px; border: 1.5px solid var(--accent); border-radius: 999px; color: var(--accent); font-family: var(--mono); font-size: 15px; font-weight: 500; transition: color 0.4s, border-color 0.4s; }
+.name { position: absolute; left: 1236px; top: 308px; margin: 0; z-index: 2; font-size: 22px; line-height: 1.35; font-weight: 700; }
+.mail { position: absolute; left: 1236px; top: 348px; z-index: 2; font-size: 22px; line-height: 1; color: var(--chalk); text-decoration: none; }
+.mail:hover { text-decoration: underline; text-underline-offset: 4px; }
+.mail:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+
+/* robot: walks the bottom edge, pauses off-screen, comes back */
+.robot { position: absolute; bottom: 8px; left: 0; width: 48px; height: 56px; z-index: 1; transform: translateX(-100px); will-change: transform; }
+.robot:not(.walking) .rb, .robot:not(.walking) .f1, .robot:not(.walking) .f2 { animation: none; }
+.robot:not(.walking) .f2 { opacity: 0; }
+.robot.look .eye { transform: translate(-1px, -1px); }
+.chat { position: absolute; left: 50%; bottom: 100%; width: 52px; height: 56px; margin-left: -26px; margin-bottom: 2px; opacity: 0; transform-origin: 50% 100%; pointer-events: none; }
+.chat svg { display: block; width: 100%; height: 100%; }
+.chat.pop { animation: chat 2s ease-out; }
+@keyframes chat {
+  0% { opacity: 0; transform: scale(0.3); }
+  14% { opacity: 1; transform: scale(1.12); }
+  22% { opacity: 1; transform: scale(1); }
+  82% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-6px); }
+}
+.px-B { fill: var(--shirt); }
+.px-F { fill: var(--chalk); }
+.px-H { fill: #FF5C7A; }
+.px-W { fill: #FFB0BD; }
+.rb { width: 100%; height: 100%; animation: bob 0.5s steps(1) infinite; }
+@keyframes bob { 0% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+.robot svg { display: block; width: 100%; height: 100%; transition: transform 0.12s steps(2); }
+.robot:hover svg { transform: translateY(-14px); }
+.f1 { animation: f1 0.5s steps(1) infinite; }
+.f2 { animation: f2 0.5s steps(1) infinite; }
+@keyframes f1 { 0% { opacity: 1; } 50% { opacity: 0; } }
+@keyframes f2 { 0% { opacity: 0; } 50% { opacity: 1; } }
+.eye { animation: eyes 4s steps(1) infinite; }
+@keyframes eyes { 0%, 93% { opacity: 1; } 94%, 97% { opacity: 0; } 98%, 100% { opacity: 1; } }
+.ant { animation: ping 1s steps(1) infinite; }
+@keyframes ping { 50% { opacity: 0.35; } }
+.px-L { fill: var(--shirt-lt); }
+.px-S { fill: var(--shirt); }
+.px-D { fill: var(--visor); }
+.px-C { fill: var(--sand); }
+.px-G { fill: var(--accent); }
+
+.hint { margin: 0; font-family: var(--mono); font-size: 13px; line-height: 1.5; color: var(--muted); }
+
+@media (prefers-reduced-motion: reduce) {
+  .robot { display: none; }
+  .caret { animation: none; }
+  .circle, .square, .l2, .pill, .caret { transition: none; }
+}
+</style>
+
+<main class="wrap">
+  <div class="stage" id="stage">
+    <div class="banner" id="banner">
+      <div class="shapes"><div class="circle"></div><div class="square"></div></div>
+
+      <div class="copy">
+        <p class="eyebrow">FRONTEND / WEB DEV / CREATIVE</p>
+        <h1 class="headline" id="headline" aria-label="I design it. I code it.">
+          <span aria-hidden="true">I design it.</span>
+          <span class="l2" aria-hidden="true"><span id="typed">I code it.</span><span class="caret"></span></span>
+        </h1>
+        <p class="pill">Open to internships, collabs &amp; opportunities</p>
+      </div>
+
+      <p class="name">Bada David Kehinde</p>
+      <a class="mail" href="mailto:badadavid100@gmail.com">badadavid100@gmail.com</a>
+
+      <div class="robot" id="robot" aria-hidden="true"><div class="chat" id="chat"></div><div class="rb" id="rb"></div></div>
+    </div>
+  </div>
+  <p class="hint">Hover the shapes or the headline. On a phone, tap the headline. The robot walks by now and then and stops to admire the headline.</p>
+</main>
+
+<script>
+(function () {
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var stage = document.getElementById('stage');
+  var banner = document.getElementById('banner');
+  var headline = document.getElementById('headline');
+  var typed = document.getElementById('typed');
+
+  /* scale the fixed-size banner to the available width */
+  function fit() {
+    var s = stage.clientWidth / 1584;
+    banner.style.transform = 'scale(' + s + ')';
+  }
+  fit();
+  if (window.ResizeObserver) { new ResizeObserver(fit).observe(stage); }
+  else { window.addEventListener('resize', fit); }
+
+  /* colour swap: accent, circle and square rotate through the portrait palette */
+  var ACC = ['#8FBE3A', '#A9BAF5', '#C9B79C', '#6780DC'];
+  var idx = 0;
+  function paint() {
+    banner.style.setProperty('--accent', ACC[idx]);
+    banner.style.setProperty('--c1', ACC[(idx + 3) % 4]);
+    banner.style.setProperty('--c2', ACC[(idx + 2) % 4]);
+  }
+
+  /* typing */
+  var TEXT = 'I code it.';
+  var run = 0;
+  function typeIt() {
+    var mine = ++run;
+    if (reduce) { typed.textContent = TEXT; return; }
+    typed.textContent = '';
+    var i = 0;
+    (function step() {
+      if (mine !== run) return;
+      i += 1;
+      typed.textContent = TEXT.slice(0, i);
+      if (i < TEXT.length) setTimeout(step, 70 + Math.random() * 40);
+    })();
+  }
+
+  function swap() { idx = (idx + 1) % ACC.length; paint(); typeIt(); }
+  headline.addEventListener('pointerenter', function (e) { if (e.pointerType === 'mouse') swap(); });
+  headline.addEventListener('click', function () { if (window.matchMedia('(hover: none)').matches) swap(); });
+
+  /* shapes drift with the pointer */
+  if (!reduce) {
+    stage.addEventListener('pointermove', function (e) {
+      if (e.pointerType !== 'mouse') return;
+      var r = stage.getBoundingClientRect();
+      banner.style.setProperty('--mx', (((e.clientX - r.left) / r.width) - 0.5) * 2);
+      banner.style.setProperty('--my', (((e.clientY - r.top) / r.height) - 0.5) * 2);
+    });
+    stage.addEventListener('pointerleave', function () {
+      banner.style.setProperty('--mx', 0);
+      banner.style.setProperty('--my', 0);
+    });
+  }
+
+  /* pixel robot: 12 x 14 grid, two leg frames */
+  var NS = 'http://www.w3.org/2000/svg';
+  var BODY = [
+    '     GG     ',
+    '     SS     ',
+    '  LLLLLLLL  ',
+    ' LLLLLLLLLL ',
+    ' LDDDDDDDDL ',
+    ' LDGGDDGGDL ',
+    ' LDGGDDGGDL ',
+    '  LLLLLLLL  ',
+    '  LLLLLLLL  ',
+    ' ALLLCCLLLA ',
+    ' ALLLCCLLLA ',
+    '  SSSSSSSS  '
+  ];
+  var LEGS1 = ['   LL  LL   ', '  SSS  SS   '];
+  var LEGS2 = ['   LL  LL   ', '   SS  SSS  '];
+  function draw(g, rows, y0) {
+    rows.forEach(function (row, ry) {
+      for (var x = 0; x < row.length; x++) {
+        var ch = row.charAt(x);
+        if (ch === ' ') continue;
+        if (ch === 'A') ch = 'S';
+        var r = document.createElementNS(NS, 'rect');
+        var y = y0 + ry;
+        r.setAttribute('x', x);
+        r.setAttribute('y', y);
+        r.setAttribute('width', 1);
+        r.setAttribute('height', 1);
+        var c = 'px-' + ch;
+        if (ch === 'G') c += (y < 2) ? ' ant' : ' eye';
+        r.setAttribute('class', c);
+        g.appendChild(r);
+      }
+    });
+  }
+  var svg = document.createElementNS(NS, 'svg');
+  svg.setAttribute('viewBox', '0 0 12 14');
+  svg.setAttribute('shape-rendering', 'crispEdges');
+  var gb = document.createElementNS(NS, 'g');
+  var g1 = document.createElementNS(NS, 'g'); g1.setAttribute('class', 'f1');
+  var g2 = document.createElementNS(NS, 'g'); g2.setAttribute('class', 'f2');
+  draw(gb, BODY, 0);
+  draw(g1, LEGS1, 12);
+  draw(g2, LEGS2, 12);
+  svg.appendChild(gb); svg.appendChild(g1); svg.appendChild(g2);
+  document.getElementById('rb').appendChild(svg);
+
+  /* chat box with a pixel heart inside */
+  var BUBBLE = [
+    ' BBBBBBBBBBB ',
+    'BFFFFFFFFFFFB',
+    'BFFFFFFFFFFFB',
+    'BFFFFFFFFFFFB',
+    'BFFFFFFFFFFFB',
+    'BFFFFFFFFFFFB',
+    'BFFFFFFFFFFFB',
+    'BFFFFFFFFFFFB',
+    'BFFFFFFFFFFFB',
+    'BFFFFFFFFFFFB',
+    'BFFFFFFFFFFFB',
+    ' BBBBBFBBBBB ',
+    '     BFB     ',
+    '      B      '
+  ];
+  var HEART = [
+    '.HH...HH.',
+    'HWHH.HHHH',
+    'HHHHHHHHH',
+    'HHHHHHHHH',
+    '.HHHHHHH.',
+    '..HHHHH..',
+    '...HHH...',
+    '....H....'
+  ];
+  function cells(g, rows, x0, y0) {
+    rows.forEach(function (row, ry) {
+      for (var cx = 0; cx < row.length; cx++) {
+        var ch = row.charAt(cx);
+        if (ch === ' ' || ch === '.') continue;
+        var r = document.createElementNS(NS, 'rect');
+        r.setAttribute('x', x0 + cx);
+        r.setAttribute('y', y0 + ry);
+        r.setAttribute('width', 1);
+        r.setAttribute('height', 1);
+        r.setAttribute('class', 'px-' + ch);
+        g.appendChild(r);
+      }
+    });
+  }
+  var csvg = document.createElementNS(NS, 'svg');
+  csvg.setAttribute('viewBox', '0 0 13 14');
+  csvg.setAttribute('shape-rendering', 'crispEdges');
+  cells(csvg, BUBBLE, 0, 0);
+  cells(csvg, HEART, 2, 2);
+  document.getElementById('chat').appendChild(csvg);
+
+  /* robot route: walk in, stop to look up at the headline, send a heart, walk on */
+  if (!reduce) {
+    var robot = document.getElementById('robot');
+    var chat = document.getElementById('chat');
+    var SPEED = 190, START = -100, STOP = 880, END = 1660;
+    var state = 'rest', x = START, wait = 1.5, last = 0, popped = false;
+    var place = function () { robot.style.transform = 'translateX(' + x + 'px)'; };
+    var frame = function (t) {
+      var dt = Math.min(0.05, (t - last) / 1000 || 0);
+      last = t;
+      if (state === 'rest') {
+        wait -= dt;
+        if (wait <= 0) { x = START; place(); robot.classList.add('walking'); state = 'in'; }
+      } else if (state === 'in') {
+        x += SPEED * dt; place();
+        if (x >= STOP) {
+          x = STOP; place();
+          robot.classList.remove('walking'); robot.classList.add('look');
+          state = 'look'; wait = 3.6; popped = false;
+        }
+      } else if (state === 'look') {
+        wait -= dt;
+        if (!popped && wait <= 2.8) {
+          popped = true;
+          chat.classList.remove('pop'); void chat.offsetWidth; chat.classList.add('pop');
+        }
+        if (wait <= 0) { robot.classList.remove('look'); robot.classList.add('walking'); state = 'out'; }
+      } else {
+        x += SPEED * dt; place();
+        if (x >= END) { robot.classList.remove('walking'); state = 'rest'; wait = 6; }
+      }
+      requestAnimationFrame(frame);
+    };
+    place();
+    requestAnimationFrame(frame);
+  }
+})();
+</script>
+
+</body></html>
